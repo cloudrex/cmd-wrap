@@ -1,7 +1,13 @@
 import fs from "fs";
 import nativePath from "path";
 import Path from "./path";
-import {FilesystemSignal, TSignalType} from "./helpers";
+import {FilesystemSignal, TSignalType, TOptAsync, TOpt} from "./helpers";
+
+export type TConfig = {
+    readonly name: string;
+
+    readonly initializedTimestamp: number;
+};
 
 export default abstract class Config {
     /**
@@ -22,5 +28,24 @@ export default abstract class Config {
         }));
 
         return fs.existsSync(configFilePath);
+    }
+
+    public static loadConfigSync(path: Path): TOpt<TConfig> {
+        /**
+         * Provided Configuration file path does not exist,
+         * return immediately.
+         */
+        if (!path.exists) {
+            return undefined;
+        }
+
+        const configContent: string = fs.readFileSync(path.toString()).toString();
+
+        try {
+            return JSON.parse(configContent);
+        }
+        catch (error) {
+            return undefined;
+        }
     }
 }
